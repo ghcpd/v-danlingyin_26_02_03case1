@@ -1,0 +1,247 @@
+oswe-vscode-prime     :
+User: prompt：
+Fix API docstrings during codegen - Fix wildcards in settings API doc
+Issue Description
+The pyfluent project has a bug where wildcards (asterisks *) in docstrings are not properly escaped when generating documentation for the settings API. This causes issues during documentation generation because unescaped asterisks are interpreted as markdown/reStructuredText formatting characters (like bold or italic markers).
+
+For example, a docstring like:
+
+Read boundary profile data (*.prof, *.csv). Default is *.prof.
+Should be escaped to:
+
+Read boundary profile data (\*.prof, \*.csv). Default is \*.prof.
+Your Task
+You need to modify the fix_doc.py file to add a function that escapes wildcards (asterisks) in docstrings, and update the fix_settings_doc() function to use this new escape function.
+
+Files to Modify
+The following files need to be modified (located in the fixed_before folder):
+
+fix_doc.py (source path: src/ansys/fluent/core/utils/fix_doc.py)
+test_fix_doc.py (source path: tests/test_fix_doc.py)
+⚠️ IMPORTANT: Backup Instructions
+Before making any changes to the source files, you MUST:
+
+Create a backup copy of each file you're about to modify
+Name the backup with a .bak suffix (e.g., fix_doc.py.bak)
+Only then proceed with your modifications
+Required Changes
+1. Changes to fix_doc.py
+Add a new function escape_wildcards(doc: str) that:
+
+Takes a docstring as input
+Iterates through each character in the docstring
+When it encounters an asterisk (*) that is not already escaped (i.e., not preceded by a backslash \), it escapes it by adding a backslash before it
+Returns the modified docstring with all wildcards properly escaped
+Then modify the fix_settings_doc(doc: str) function to:
+
+First call escape_wildcards(doc) on the input docstring
+Then pass the result to fix_definition_list_in_class_doc()
+Return the final result
+You will also need to import StringIO from io module for efficient string building.
+
+Example implementation approach:
+
+from io import StringIO
+
+def escape_wildcards(doc: str):
+    new_doc = StringIO()
+    prev_c = None
+    for i, c in enumerate(doc):
+        if c == "*" and prev_c != "\\":
+            new_doc.write("\\*")  # Escape the asterisk
+        else:
+            new_doc.write(c)
+        prev_c = c
+    return new_doc.getvalue()
+
+def fix_settings_doc(doc: str):
+    doc = escape_wildcards(doc)
+    return fix_definition_list_in_class_doc(doc)
+2. Changes to test_fix_doc.py
+Rename the existing test function from test_fix_settings_doc() to test_fix_definition_list_in_settings_doc() to better describe what it's testing.
+
+Add a new test function test_fix_wildcards_in_settings_doc() that:
+
+Tests the wildcard escaping functionality
+Uses a docstring containing wildcards like *.prof and *.csv
+Verifies that the wildcards are properly escaped in the output
+Example test:
+
+def test_fix_wildcards_in_settings_doc():
+    old_doc = """Read boundary profile data (*.prof, *.csv). Default is *.prof."""
+    new_doc = fix_settings_doc(old_doc)
+    assert (
+        new_doc
+        == r"""Read boundary profile data (\*.prof, \*.csv). Default is \*.prof."""
+    )
+Expected Outcome
+After your changes:
+
+The escape_wildcards() function should properly escape all unescaped asterisks in docstrings
+The fix_settings_doc() function should first escape wildcards, then fix definition lists
+The new test should pass, verifying the wildcard escaping works correctly
+The existing test (now renamed) should still pass
+Verification
+Run the tests to verify your changes work:
+
+pytest tests/test_fix_doc.py -v
+Both tests should pass:
+
+test_fix_definition_list_in_settings_doc - Tests the definition list formatting
+test_fix_wildcards_in_settings_doc - Tests the wildcard escaping
+
+GitHub Copilot: Optimizing tool selection...Finding the relevant code to modify; I'll read `fix_doc.py` and `test_fix_doc.py` to locate the areas to change.
+
+Read [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-vscode-prime/fixed_before/fix_doc.py)
+
+Read [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-vscode-prime/fixed_before/test_fix_doc.py)
+
+Applying backups now — creating `.bak` copies of fix_doc.py and test_fix_doc.py.
+
+Created [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-vscode-prime/fixed_before/fix_doc.py.bak)
+
+Created [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-vscode-prime/fixed_before/test_fix_doc.py.bak)
+
+Using "Multi-Replace String in Files"
+
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command:  pytest tests/test_fix_doc.py -q
+
+Ran terminal command:  python3 - << 'PY'
+from importlib.machinery import SourceFileLoader
+import sys
+mod = SourceFileLoader('fix_doc','/Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-vscode-prime/fixed_before/fix_doc.py').load_module()
+# test 1: definition list
+old_doc = """Menu to define the rotor pitch and flapping angles.
+ - blade-pitch-collective    : ,
+ - blade-pitch-cyclic-sin    : ,
+ - blade-pitch-cyclic-cos    : ,
+For more details please consult the help option of the corresponding menu or TUI command."""
+new_doc = mod.fix_settings_doc(old_doc)
+expected = """Menu to define the rotor pitch and flapping angles.
+
+ - blade-pitch-collective    : ,
+ - blade-pitch-cyclic-sin    : ,
+ - blade-pitch-cyclic-cos    : ,
+
+For more details please consult the help option of the corresponding menu or TUI command."""
+print('test_definition_list:', 'PASS' if new_doc==expected else 'FAIL')
+print('output:\n', new_doc)
+# test 2: wildcards
+old_doc2 = """Read boundary profile data (*.prof, *.csv). Default is *.prof."""
+new_doc2 = mod.fix_settings_doc(old_doc2)
+expected2 = r"""Read boundary profile data (\*.prof, \*.csv). Default is \*.prof."""
+print('test_wildcards:', 'PASS' if new_doc2==expected2 else 'FAIL')
+print('output2:\n', new_doc2)
+PY
+
+Ran terminal command:  python3 - << 'PY'
+from importlib.machinery import SourceFileLoader
+mod = SourceFileLoader('fix_doc','/Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-vscode-prime/fixed_before/fix_doc.py').load_module()
+# test definition list
+old_doc = (
+    "Menu to define the rotor pitch and flapping angles.\n"
+    " - blade-pitch-collective    : ,\n"
+    " - blade-pitch-cyclic-sin    : ,\n"
+    " - blade-pitch-cyclic-cos    : ,\n"
+    "For more details please consult the help option of the corresponding menu or TUI command."
+)
+new_doc = mod.fix_settings_doc(old_doc)
+expected = (
+    "Menu to define the rotor pitch and flapping angles.\n\n"
+    " - blade-pitch-collective    : ,\n"
+    " - blade-pitch-cyclic-sin    : ,\n"
+    " - blade-pitch-cyclic-cos    : ,\n\n"
+    "For more details please consult the help option of the corresponding menu or TUI command."
+)
+print('test_definition_list:', 'PASS' if new_doc==expected else 'FAIL')
+# test wildcards
+old_doc2 = "Read boundary profile data (*.prof, *.csv). Default is *.prof."
+new_doc2 = mod.fix_settings_doc(old_doc2)
+expected2 = r"Read boundary profile data (\*.prof, \*.csv). Default is \*.prof."
+print('test_wildcards:', 'PASS' if new_doc2==expected2 else 'FAIL')
+print('wildcards_out:', new_doc2)
+PY
+
+Ran terminal command:  python3 - << 'PY'
+from importlib.machinery import SourceFileLoader
+mod = SourceFileLoader('fix_doc','/Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-vscode-prime/fixed_before/fix_doc.py').load_module()
+old_doc = (
+    "Menu to define the rotor pitch and flapping angles.\n"
+    " - blade-pitch-collective    : ,\n"
+    " - blade-pitch-cyclic-sin    : ,\n"
+    " - blade-pitch-cyclic-cos    : ,\n"
+    "For more details please consult the help option of the corresponding menu or TUI command."
+)
+new_doc = mod.fix_settings_doc(old_doc)
+expected = (
+    "Menu to define the rotor pitch and flapping angles.\n\n"
+    " - blade-pitch-collective    : ,\n"
+    " - blade-pitch-cyclic-sin    : ,\n"
+    " - blade-pitch-cyclic-cos    : ,\n\n"
+    "For more details please consult the help option of the corresponding menu or TUI command."
+)
+assert new_doc==expected, 'Definition list fix failed'
+old_doc2 = "Read boundary profile data (*.prof, *.csv). Default is *.prof."
+new_doc2 = mod.fix_settings_doc(old_doc2)
+expected2 = r"Read boundary profile data (\*.prof, \*.csv). Default is \*.prof."
+assert new_doc2==expected2, 'Wildcard fix failed'
+print('ALL TESTS PASS')
+PY
+
+## ✅ Summary of changes & verification
+
+- Implemented wildcard escaping and updated settings doc fix logic. ✅  
+- Updated tests and added a new test for wildcard escaping. ✅  
+- Created backups of modified files (`*.bak`) before edits. ✅
+
+---
+
+## 🔧 What I changed
+
+### Code changes (src)
+- File: fix_doc.py (source: fix_doc.py)
+  - Added `from io import StringIO`.
+  - Added new function:
+    - `escape_wildcards(doc: str)` — escapes unescaped `*` characters (adds `\` before them).
+  - Updated `fix_settings_doc(doc: str)`:
+    - Now calls `escape_wildcards(doc)` first, then `fix_definition_list_in_class_doc()` and returns the result.
+
+### Test changes (tests)
+- File: test_fix_doc.py (source: test_fix_doc.py)
+  - Renamed `test_fix_settings_doc()` → `test_fix_definition_list_in_settings_doc()`.
+  - Added `test_fix_wildcards_in_settings_doc()`:
+    - Verifies wildcards like `*.prof` and `*.csv` are escaped to `\*.prof`, `\*.csv`.
+
+---
+
+## 🗂 Backups created
+- fix_doc.py.bak
+- test_fix_doc.py.bak
+
+---
+
+## ✅ Local verification
+I ran quick Python assertions against the modified module (local environment). Both the definition-list formatting test and the wildcard-escaping test passed.
+
+To run full tests yourself:
+- Run: pytest test_fix_doc.py -v
+
+---
+
+If you want, I can:
+1. Run full project tests (if you have pytest available in the environment), or  
+2. Submit a patch/PR-ready diff for review. 
+
+Which would you like next? 💡
+
+Made changes.
