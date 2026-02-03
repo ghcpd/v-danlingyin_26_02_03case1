@@ -1,0 +1,155 @@
+oswe-c1m0a1s90-flash     :
+User: prompt：
+Fix API docstrings during codegen - Fix wildcards in settings API doc
+Issue Description
+The pyfluent project has a bug where wildcards (asterisks *) in docstrings are not properly escaped when generating documentation for the settings API. This causes issues during documentation generation because unescaped asterisks are interpreted as markdown/reStructuredText formatting characters (like bold or italic markers).
+
+For example, a docstring like:
+
+Read boundary profile data (*.prof, *.csv). Default is *.prof.
+Should be escaped to:
+
+Read boundary profile data (\*.prof, \*.csv). Default is \*.prof.
+Your Task
+You need to modify the fix_doc.py file to add a function that escapes wildcards (asterisks) in docstrings, and update the fix_settings_doc() function to use this new escape function.
+
+Files to Modify
+The following files need to be modified (located in the fixed_before folder):
+
+fix_doc.py (source path: src/ansys/fluent/core/utils/fix_doc.py)
+test_fix_doc.py (source path: tests/test_fix_doc.py)
+⚠️ IMPORTANT: Backup Instructions
+Before making any changes to the source files, you MUST:
+
+Create a backup copy of each file you're about to modify
+Name the backup with a .bak suffix (e.g., fix_doc.py.bak)
+Only then proceed with your modifications
+Required Changes
+1. Changes to fix_doc.py
+Add a new function escape_wildcards(doc: str) that:
+
+Takes a docstring as input
+Iterates through each character in the docstring
+When it encounters an asterisk (*) that is not already escaped (i.e., not preceded by a backslash \), it escapes it by adding a backslash before it
+Returns the modified docstring with all wildcards properly escaped
+Then modify the fix_settings_doc(doc: str) function to:
+
+First call escape_wildcards(doc) on the input docstring
+Then pass the result to fix_definition_list_in_class_doc()
+Return the final result
+You will also need to import StringIO from io module for efficient string building.
+
+Example implementation approach:
+
+from io import StringIO
+
+def escape_wildcards(doc: str):
+    new_doc = StringIO()
+    prev_c = None
+    for i, c in enumerate(doc):
+        if c == "*" and prev_c != "\\":
+            new_doc.write("\\*")  # Escape the asterisk
+        else:
+            new_doc.write(c)
+        prev_c = c
+    return new_doc.getvalue()
+
+def fix_settings_doc(doc: str):
+    doc = escape_wildcards(doc)
+    return fix_definition_list_in_class_doc(doc)
+2. Changes to test_fix_doc.py
+Rename the existing test function from test_fix_settings_doc() to test_fix_definition_list_in_settings_doc() to better describe what it's testing.
+
+Add a new test function test_fix_wildcards_in_settings_doc() that:
+
+Tests the wildcard escaping functionality
+Uses a docstring containing wildcards like *.prof and *.csv
+Verifies that the wildcards are properly escaped in the output
+Example test:
+
+def test_fix_wildcards_in_settings_doc():
+    old_doc = """Read boundary profile data (*.prof, *.csv). Default is *.prof."""
+    new_doc = fix_settings_doc(old_doc)
+    assert (
+        new_doc
+        == r"""Read boundary profile data (\*.prof, \*.csv). Default is \*.prof."""
+    )
+Expected Outcome
+After your changes:
+
+The escape_wildcards() function should properly escape all unescaped asterisks in docstrings
+The fix_settings_doc() function should first escape wildcards, then fix definition lists
+The new test should pass, verifying the wildcard escaping works correctly
+The existing test (now renamed) should still pass
+Verification
+Run the tests to verify your changes work:
+
+pytest tests/test_fix_doc.py -v
+Both tests should pass:
+
+test_fix_definition_list_in_settings_doc - Tests the definition list formatting
+test_fix_wildcards_in_settings_doc - Tests the wildcard escaping
+
+GitHub Copilot: Created 5 todos
+
+Read [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-c1m0a1s90-flash/fixed_before/fix_doc.py)
+
+Read [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-c1m0a1s90-flash/fixed_before/test_fix_doc.py)
+
+Starting: *Create backup files (.bak)* (2/5)
+
+Ran terminal command:  cd /Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-c1m0a1s90-flash/fixed_before && cp fix_doc.py fix_doc.py.bak && cp test_fix_doc.py test_fix_doc.py.bak && ls -la *.bak
+
+Starting: *Modify fix_doc.py* (3/5)
+
+Replacing 15 lines with 40 lines in [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-c1m0a1s90-flash/fixed_before/fix_doc.py), [](file:///Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-c1m0a1s90-flash/fixed_before/test_fix_doc.py)
+
+
+```
+
+```
+
+```
+
+```
+
+
+Starting: *Run tests to verify* (5/5)
+
+Let me check the test setup and run the tests. The test imports from the package path, so I'll need to run the test with the correct Python path: 
+
+Ran terminal command:  cd /Users/danni_yin/Documents/Bugbash/26.2/2.3/case1/test-case/oswe-c1m0a1s90-flash/fixed_before && PYTHONPATH=. python -c "
+import sys
+sys.modules['ansys'] = type(sys)('ansys')
+sys.modules['ansys.fluent'] = type(sys)('ansys.fluent')
+sys.modules['ansys.fluent.core'] = type(sys)('ansys.fluent.core')
+sys.modules['ansys.fluent.core.utils'] = type(sys)('ansys.fluent.core.utils')
+import fix_doc
+sys.modules['ansys.fluent.core.utils.fix_doc'] = fix_doc
+exec(open('test_fix_doc.py').read())
+test_fix_definition_list_in_settings_doc()
+print('test_fix_definition_list_in_settings_doc: PASSED')
+test_fix_wildcards_in_settings_doc()
+print('test_fix_wildcards_in_settings_doc: PASSED')
+"
+
+Completed: *Run tests to verify* (5/5)
+
+All tasks completed successfully. Here's a summary:
+
+**Backups created:**
+- `fix_doc.py.bak`
+- `test_fix_doc.py.bak`
+
+**Changes to fix_doc.py:**
+- Added `from io import StringIO` import
+- Added `escape_wildcards(doc: str)` function that escapes unescaped asterisks
+- Updated `fix_settings_doc()` to call `escape_wildcards()` before `fix_definition_list_in_class_doc()`
+
+**Changes to test_fix_doc.py:**
+- Renamed `test_fix_settings_doc()` → `test_fix_definition_list_in_settings_doc()`
+- Added new `test_fix_wildcards_in_settings_doc()` test
+
+**Test results:** Both tests passed ✓
+
+Made changes.
